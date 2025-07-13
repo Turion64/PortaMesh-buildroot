@@ -148,6 +148,13 @@ reg_vcc_core {
 			};
 		};
 	};
+
+        // Wifi
+        wifi_pwrseq: wifi-pwrseq {
+            compatible = "mmc-pwrseq-simple";
+            reset-gpios = <&pio 6 12 GPIO_ACTIVE_LOW>; //PG12
+        };
+
         // Boutons
         // TODO : marche pas car interrupt foireux ?
         gpio_keys: gpio-keys {
@@ -581,40 +588,54 @@ reg_vcc_core {
     };
 };
 
-&i2c1 {
+// Bluetooth
+// Intégré dans module SDIO Fn-Link 6223A-SRD
+// Utilise le chipset RTL8723ds. La partie BT communique en UART
+// Connecté sur UART2 : PE2 PE3
+//      avec RTS/CTS  : PE0 PE1
+//      DEVICE WAKE   : PG13
+//      HOST WAKE     : PG14
+//      ENABLE/nRESET : PG15
+&uart2 {
     pinctrl-names = "default";
-    pinctrl-0 = <&i2c1_pins>;
+    pinctrl-0 = <&uart2_pe2_pins>, <&uart2_pe0_rts_cts_pins>;
+    uart-has-rtscts;
     status = "okay";
-    clock-frequency = <400000>; // oled go fast
-    #address-cells = <1>;
-    #size-cells = <0>;
-    // 0.91" i2c oled
-    ssd1306_i2c: oled@3c {
-        compatible = "solomon,ssd1306fb-i2c";
-        reg = <0x3c>;
-        solomon,height = <32>;
-        solomon,width = <128>;
-        solomon,com-seq;
-        solomon,com-invdir;
-        solomon,page-offset = <0>;
-        solomon,prechargep1 = <2>;
-        solomon,prechargep2 = <13>;
+
+    bluetooth {
+        compatible = "realtek,rtl8723ds-bt";
+        device-wake-gpios = <&pio 6 13 GPIO_ACTIVE_HIGH>; /* PG 13 */
+        host-wake-gpios = <&pio 6 14 GPIO_ACTIVE_HIGH>; /* PG 14 */
+        enable-gpios = <&pio 6 15 GPIO_ACTIVE_HIGH>; /* PG 15 */
     };
 };
 
-&spi0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi0_pins>;
-	status = "okay";
 
-	sx1262@0 {
-                compatible = "semtech,sx1301";
-                // retarded kernel devs don't think having an uncommitted spi port on a board is usefull, so "linux,spidev" doesn't work anymore.
-                // "semtech,sx1301" is equiavelent to "linux,spidev" and appears as /dev/spidev0.0
-                // https://elixir.bootlin.com/linux/v6.13.4/source/drivers/spi/spidev.c#L741
-		//compatible = "linux,spidev";
-		reg = <0>; /* CS #0 */
-		spi-max-frequency = <10000000>;
-	};
+// Wifi
+
+&mmc1 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&mmc1_pins>;
+    vmmc-supply = <&reg_dcdc1>;
+    mmc-pwrseq = <&wifi_pwrseq>;
+    non-removable;
+
+    bus-width = <4>;
+    max-frequency = <150000000>;  // NOTE : supposé être à 1.8v alors que notre éléctronique est bloquée à 3.3v
+    no-1-8-v;
+    cap-sd-highspeed;
+    sd-uhs-sdr50;
+    sd-uhs-sdr104;      // NOTE : ça il sait pas le faire à 3.3v, mais on verra bien si ça marche
+    sd-uhs-ddr50;
+    status = "okay";
+
+    rtl8723ds: wifi@1 {
+        // TODO : finir définition interface (vitesses, suspend, interrupts, wake, ...)
+        reg = <1>;
+        host-wake-gpios = <&pio 6 10 GPIO_ACTIVE_HIGH>; /* PG 10 */ // <-- pas sûr que ce soit nécéssaire, en fait...
+        interrupt-parent = <&pio>;
+        interrupts = <6 10 IRQ_TYPE_LEVEL_HIGH>; /* PG10 */
+        interrupt-names = "host-wake";
+    };
 };
 
