@@ -1,0 +1,631 @@
+From patchwork Sat Dec 31 16:46:24 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Samuel Holland <samuel@sholland.org>
+X-Patchwork-Id: 13086147
+Return-Path: 
+ <linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 75650C4332F
+	for <linux-riscv@archiver.kernel.org>; Sat, 31 Dec 2022 16:47:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=UYGousGTAIh/X0tl5ounVbsJ756jssxUyLd6xfg6pMw=; b=njapWaIB5N+zWE
+	Yb4iXIeiA+8rtIRp182WIOFocbsP4yH6MfmcIWeFui2DlTtAXYnDR6srSU8OYoKe5gcrtuDHSHa59
+	GmD41s1w8xUOVouCowVmePhZVvP5meYZB7vqkWrfFIfX1mbW43iWrOxvy52TsnoAEZ5k6SYaNmf9/
+	CIXZpc717ccsph1yem2RHXEO3fSomwdRxZO4/UB/0E/hAg8L7Lo+7nIO4T6P0Gc41OI+/FDt8bWle
+	bDcz21kbXES7WvuQkDAtkr1Qeq106g9Dv0aRqg+e38u+B5JVd2CeRMMJ47kK6mXtDNgh4RpIz+aAN
+	EKCmwcHFCSlHcNfUNjYg==;
+Received: from localhost ([::1] helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtp (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf14-007e8M-6G; Sat, 31 Dec 2022 16:47:26 +0000
+Received: from out2-smtp.messagingengine.com ([66.111.4.26])
+	by bombadil.infradead.org with esmtps (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf0D-007dde-3I; Sat, 31 Dec 2022 16:46:35 +0000
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+	by mailout.nyi.internal (Postfix) with ESMTP id 644E85C00CB;
+	Sat, 31 Dec 2022 11:46:32 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute6.internal (MEProxy); Sat, 31 Dec 2022 11:46:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sholland.org; h=
+	cc:cc:content-transfer-encoding:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:sender
+	:subject:subject:to:to; s=fm3; t=1672505192; x=1672591592; bh=1D
+	BP+rGGLrXexyIgtUoV3nBhVt1qdh7rplGwtcADlbA=; b=e5vzK2/pbB8gZeo7qF
+	c60+an/Kwxd7BMvePWfJ9q3xwb80doRZb4xwwU8UETvmwxhTLkhkF1kOtXrYlo2f
+	5YEJItP+f1VjKbff4i1/0pdcEUrky3zmUIZONKo88TTSCPWJuDAxPRpzaCdSukmx
+	rThbjWpcwGKoZwD6+jefZDW/CsiTqsTocbDH0LOney+5DdkGvgePpIGiKv9Arayx
+	mxlHs2ryCWK9+xEOxY3V330oL7TSMtQpdnkJmK99Z7T0rCdF1DGH3nx+2wMS+Mf4
+	NNaW2MjOnqeo2FRViHuwuqwo0QEvCM79IDBEux1nziwCHvhD0sgUEr+lRwrHdTxg
+	WlJQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:sender:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm2; t=1672505192; x=1672591592; bh=1DBP+rGGLrXex
+	yIgtUoV3nBhVt1qdh7rplGwtcADlbA=; b=OmRoilvKB3hnuYsCxnQPK9mXHGJl1
+	OO4BkDOFFVeDfqf6AWkCOEgTFXWzutaY+GBE7Fi55ZIIVVm9HAHZViLJ0GQFFvAt
+	U5s+ki5nsRMqRliLSLPLAOOZG9FhG9kdR+rryp7F/lDU63FgxCoRp5o0R+3LB2Qd
+	1DdbkBmoTOrzTCIQCzys9mthJoW5sE8aC2vQikyZYVdo7k1s2XmhJ5z+mNlqmwU6
+	hU3QTdCIcNnCSReX0eDfsyK+RMCc90eZSfZLrvUJBnD9TO/UJQ/MkAyE7/R6T6dh
+	t0QaoyjR9Y5s6AvucVUU98YIXf0nFzgGHZZgc+suPXlsD9kiY0m1p6Vgw==
+X-ME-Sender: <xms:aGewYzSOKq09gkyWPv8ncOA3_579N_Ah4E0zNmBmSI2m5GXXkdb8tA>
+    <xme:aGewY0xgx269-Ay-W2mbHpmXKaCJtALPRJn6J4eH0Gyi8Efj23aJ2bKsjArs85ASx
+    jFTaWc3z341YSHZMw>
+X-ME-Received: 
+ <xmr:aGewY42g2PAfXjlpGZO9EutL2_LmJlPTjwHzAX6vS476DacuDjOuF5Ey8mMDdmTj7IxiVkGQrrvWE1a4YQvAaJg2u6cLwV0nAKZZX9M0kMi_W125bSdRg2Cmzje7ozzKwehWaQ>
+X-ME-Proxy-Cause: 
+ gggruggvucftvghtrhhoucdtuddrgedvhedrieekgdelvdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefhvfevufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpefurghmuhgv
+    lhcujfholhhlrghnugcuoehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhgqeenucggtf
+    frrghtthgvrhhnpedukeetueduhedtleetvefguddvvdejhfefudelgfduveeggeehgfdu
+    feeitdevteenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
+    hmpehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhg
+X-ME-Proxy: <xmx:aGewYzB2Wrl6y9fgbpxLIi0WfqPPgfKZXowQqB6qb3wp2ls4_7Z_5Q>
+    <xmx:aGewY8g2NwLGMuh1tdFTyBqb3Trm-9ZnKrqE2yhrYfEIfXtSjykmpg>
+    <xmx:aGewY3qfAP6pQPZ5WvI3qOinQ3d3ZL3jl5Hm_zPa2xlnywr4KM3CnA>
+    <xmx:aGewY1YJcGNoln_Fl3udknLlditU6uqvNakHroFUmA_1ILHMVu3AlA>
+Feedback-ID: i0ad843c9:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
+ 31 Dec 2022 11:46:31 -0500 (EST)
+From: Samuel Holland <samuel@sholland.org>
+To: Chen-Yu Tsai <wens@csie.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>
+Cc: Samuel Holland <samuel@sholland.org>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Conor Dooley <conor@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Maxime Ripard <mripard@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-staging@lists.linux.dev,
+	linux-sunxi@lists.linux.dev
+Subject: [PATCH 1/4] media: dt-bindings: cedrus: Allow power domain references
+Date: Sat, 31 Dec 2022 10:46:24 -0600
+Message-Id: <20221231164628.19688-2-samuel@sholland.org>
+X-Mailer: git-send-email 2.37.4
+In-Reply-To: <20221231164628.19688-1-samuel@sholland.org>
+References: <20221231164628.19688-1-samuel@sholland.org>
+MIME-Version: 1.0
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20221231_084633_261693_D10CF02C 
+X-CRM114-Status: UNSURE (   8.97  )
+X-CRM114-Notice: Please train this message.
+X-BeenThere: linux-riscv@lists.infradead.org
+X-Mailman-Version: 2.1.34
+Precedence: list
+List-Id: <linux-riscv.lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-riscv/>
+List-Post: <mailto:linux-riscv@lists.infradead.org>
+List-Help: <mailto:linux-riscv-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-riscv" <linux-riscv-bounces@lists.infradead.org>
+Errors-To: 
+ linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org
+
+The Allwinner D1 SoC contains a separate power domain for its video
+engine, controlled via the "PPU" power controller. Allow the
+power-domains property so this can be represented in the devicetree.
+
+Signed-off-by: Samuel Holland <samuel@sholland.org>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+---
+
+ .../bindings/media/allwinner,sun4i-a10-video-engine.yaml       | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml
+index 541325f900a1..d5be7f604e8c 100644
+--- a/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml
++++ b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml
+@@ -63,6 +63,9 @@ properties:
+       CMA pool to use for buffers allocation instead of the default
+       CMA pool.
+ 
++  power-domains:
++    maxItems: 1
++
+ required:
+   - compatible
+   - reg
+
+From patchwork Sat Dec 31 16:46:25 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Samuel Holland <samuel@sholland.org>
+X-Patchwork-Id: 13086148
+Return-Path: 
+ <linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 0732BC3DA7A
+	for <linux-riscv@archiver.kernel.org>; Sat, 31 Dec 2022 16:48:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=u8PZtKu6IDM+R0b4juhyVN1MVpXVxACAdFtCi3X/YTs=; b=a8PnaQBdgBl9eF
+	5coSEpzFQgnmUSPClMairBTmeyM5gdCe7zDZYqc45qS1/KsCgV0vUSTQm6yDQdTGahJ4VBszYcbl5
+	EtutzBAUxSNpXkcTezF4FyEN2P3CtnBDQ6p3Fd3TCPO1zkhkLzUc215iDmpDLvfgd+KlFo3EJ7eKK
+	gBJmWv4wY0P5ucq/fD8m2LcNnYWFzLJ7K2Lrr8lr9x3e36xIeoJqK89e/8plE7trZLvSl2cfoy8ev
+	jFZDJ9wzytLW6GkIHkVCTmi/URXeKktL1X9h+MhXDJyWD2cICV6mtF/qBdwcDVcAla3rOemQ76Ycv
+	7mSSqkSHyhc23/BHrIlA==;
+Received: from localhost ([::1] helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtp (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf1d-007eUj-31; Sat, 31 Dec 2022 16:48:01 +0000
+Received: from out2-smtp.messagingengine.com ([66.111.4.26])
+	by bombadil.infradead.org with esmtps (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf0E-007dgG-Iz; Sat, 31 Dec 2022 16:46:36 +0000
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+	by mailout.nyi.internal (Postfix) with ESMTP id E78D55C00C9;
+	Sat, 31 Dec 2022 11:46:33 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute2.internal (MEProxy); Sat, 31 Dec 2022 11:46:33 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sholland.org; h=
+	cc:cc:content-transfer-encoding:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:sender
+	:subject:subject:to:to; s=fm3; t=1672505193; x=1672591593; bh=UI
+	LhNGgAzXEExQUtc1nNgyH89N42rlAHuhv77zefq20=; b=wxutMGFlw5JuLTULHY
+	ICfG5YZe8MGmJd13HbOs49Rwr1BTJMYmTJF7RanCKX5v/pIkIolcu+XB0QPs1t0p
+	aF1VCBdvM5FTYjuOr32gnnPH6li9riPD1+THcukilntiAQM5f8Lr1V0asrRbTZuX
+	ebwljvg691LN4J1kTgjOnbCXV1NQKfkd92CxbDamvNCeUlwEmAdtzD2N6zKInssO
+	zZsFCInQpe9DcmlIqrTgNkWTPvyhDM7vCdXwvAGRXvBBLriK/BOTb+UqDASfw4Sx
+	t8OwQAxuKX6DgWip+gW/dAQ7cNeHxVrfpQW4AJYAz6v2WSPCe/SpXivmILbW5q/H
+	K2KQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:sender:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm2; t=1672505193; x=1672591593; bh=UILhNGgAzXEEx
+	QUtc1nNgyH89N42rlAHuhv77zefq20=; b=W2R7B7UuVmY4PqOUJ+Pl+jCR/n30I
+	VMu3xI5IzfzIP6Lrql/4T/GS/1dlwjRt94y+iiHvd4lcQwmvbxQpSkBxUp031GmL
+	/IKlHLiSH0FzMOhe0/7UEVELnuabns1r3GcAqNE6nNlI7Hx9SxAIoi4yxeXbX255
+	frFsMCHFdpXim881nK1biCZ1t3+rG7KtP2bAR20b+jZS0zmTUEF6YgE2eXtey12x
+	c43W9rNxo3KgHruxdCOekj4cZ4LKsYriH58CU3YQIBtGhNpoiTfB6qVcmQBKQy8j
+	izezOOA7eQxXFQrrecJONMccXkb/YqLk95Eyl8p3KeqCnhoqkCWMXPAjA==
+X-ME-Sender: <xms:aWewYwmnzfLZgQzcm3nf__685uZkbcKHVWv_anSvtZJzwLzUGdn2XQ>
+    <xme:aWewY_1Q5Dc31wrZg7_KgDv9iTJWJkjkIGgzroXCl-TKOpfVqF-mDRAFNia7O45l8
+    xNEsUZBUaBwsAmg6w>
+X-ME-Received: 
+ <xmr:aWewY-ohlvMzAoDd_F8B7RyDXya3X5II5SGadfvb3PQL_62ouHdj99VDXX_Qv5DkRHTGNx3FUiLgN4f6x1IdIKfZTRbi90IP2vHV0sqeokFUhrjt1GHGbzZoVV-VHyYydqbivg>
+X-ME-Proxy-Cause: 
+ gggruggvucftvghtrhhoucdtuddrgedvhedrieekgdelvdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefhvfevufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpefurghmuhgv
+    lhcujfholhhlrghnugcuoehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhgqeenucggtf
+    frrghtthgvrhhnpedukeetueduhedtleetvefguddvvdejhfefudelgfduveeggeehgfdu
+    feeitdevteenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
+    hmpehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhg
+X-ME-Proxy: <xmx:aWewY8kYAA4LnC0T8wuzl6f9IgSvnl4T3d1e8hmiNx1tmxB5_XSiiA>
+    <xmx:aWewY-3n3m_muuWkRR1FDc0Yqyaa45FxoB1Usrxu74aWcDsNfRW_Ug>
+    <xmx:aWewYztKqru5VnxSO6czmIVMtDtyUnPGX5vd6PiXAtdFBAZCesJ-Iw>
+    <xmx:aWewY1uVhnRUWthpZvDARZ3F6H_BxiJh74M-E_-FvdTWnMhKDjAnQg>
+Feedback-ID: i0ad843c9:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
+ 31 Dec 2022 11:46:32 -0500 (EST)
+From: Samuel Holland <samuel@sholland.org>
+To: Chen-Yu Tsai <wens@csie.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>
+Cc: Samuel Holland <samuel@sholland.org>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Conor Dooley <conor@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Maxime Ripard <mripard@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-staging@lists.linux.dev,
+	linux-sunxi@lists.linux.dev
+Subject: [PATCH 2/4] media: dt-bindings: cedrus: Make allwinner,sram optional
+Date: Sat, 31 Dec 2022 10:46:25 -0600
+Message-Id: <20221231164628.19688-3-samuel@sholland.org>
+X-Mailer: git-send-email 2.37.4
+In-Reply-To: <20221231164628.19688-1-samuel@sholland.org>
+References: <20221231164628.19688-1-samuel@sholland.org>
+MIME-Version: 1.0
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20221231_084634_744238_B46E6365 
+X-CRM114-Status: GOOD (  10.48  )
+X-BeenThere: linux-riscv@lists.infradead.org
+X-Mailman-Version: 2.1.34
+Precedence: list
+List-Id: <linux-riscv.lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-riscv/>
+List-Post: <mailto:linux-riscv@lists.infradead.org>
+List-Help: <mailto:linux-riscv-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-riscv" <linux-riscv-bounces@lists.infradead.org>
+Errors-To: 
+ linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org
+
+Allwinner SoCs can remap some bits of peripheral SRAM to a contiguous
+range of addresses for use by early boot software. Usually the video
+engine's SRAM is used for this purpose, so its mapping must be switched
+back before the hardware can be used.
+
+However, the D1 and related SoCs use the DSP SRAM for this purpose. As a
+result, the video engine SRAM is not switchable, and there is no need
+for an allwinner,sram reference in the devicetree.
+
+Signed-off-by: Samuel Holland <samuel@sholland.org>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+
+ .../bindings/media/allwinner,sun4i-a10-video-engine.yaml         | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml
+index d5be7f604e8c..74363b242fff 100644
+--- a/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml
++++ b/Documentation/devicetree/bindings/media/allwinner,sun4i-a10-video-engine.yaml
+@@ -73,7 +73,6 @@ required:
+   - clocks
+   - clock-names
+   - resets
+-  - allwinner,sram
+ 
+ additionalProperties: false
+ 
+
+From patchwork Sat Dec 31 16:46:26 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Samuel Holland <samuel@sholland.org>
+X-Patchwork-Id: 13086149
+Return-Path: 
+ <linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 8D65BC4332F
+	for <linux-riscv@archiver.kernel.org>; Sat, 31 Dec 2022 16:49:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=h/aPzaU1s/h8sEb7GmG+rIc/4DLtOJANV+eHK9u+uf4=; b=3WhH+OCo++WeH6
+	lsxtsZ01vnHdMOAgQrkdg2HnyaLfAzZEMQ0BnW9Tec3IbWfEygY1aqm0nC7HTKOECw1rjJLvdq5xT
+	fjeiDZqsYGfRQVIGjj5mcWJ0xfB6WhVBK+zhCqVP2/O48hwRzpeaUKyTlIn0Tub0wq27l0yWgwyvU
+	xsUGOPQivw5rroT4nDJvYyjnMiNO+4jLAcLJ73zDJll9iGVmTMWGChhZ+cklDP4oVm4/v2mHW0dbZ
+	jkAyTZ4CmQMZHrc98hM7PNbCMVIS0bsQT2cgevqvZT4TtzrsIpoZRLmn1Y5AsCRttnc+xKkTPh46N
+	E5AbtWS/6YeS9YH+rDtw==;
+Received: from localhost ([::1] helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtp (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf2h-007fFS-KD; Sat, 31 Dec 2022 16:49:07 +0000
+Received: from out2-smtp.messagingengine.com ([66.111.4.26])
+	by bombadil.infradead.org with esmtps (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf0G-007dhZ-1H; Sat, 31 Dec 2022 16:46:37 +0000
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+	by mailout.nyi.internal (Postfix) with ESMTP id 5CE985C009C;
+	Sat, 31 Dec 2022 11:46:35 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute6.internal (MEProxy); Sat, 31 Dec 2022 11:46:35 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sholland.org; h=
+	cc:cc:content-transfer-encoding:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:sender
+	:subject:subject:to:to; s=fm3; t=1672505195; x=1672591595; bh=vE
+	ylqdPcoZ0euJOiHbHp34nwz64q54ysKO9PHy+mOik=; b=1rPKUsxgmjqpFZdAfi
+	a3OPrH3yZL9jXRY32T0irAR/mW9JrzsVFHMTs4wS1TTBaAScL4NRv+FRu/6aqzZg
+	KaKcIqdsK9o+Q6uDBMPGCetRpHL3rY+6NNGDuLcfIFtcDly/XnEBlntPQ5suVzxP
+	8ohCJq2ioga4MSmhHkNlIHJKH1gW1RTx2h0be6Bid1jgoXk0d9m91BATEY/uU9+r
+	FbyzufJrJFRRELVwD9aMsm7lRHgG1431KxLxivrxuSACB8wCeH9Vl+4197TigYFa
+	QBIZ5wB11Q2M2WhcdNAkdKaDamGnCxS5PeREAM0gELUHqUJ7uiTNbnZVpwU8qOir
+	WlFQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:sender:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm2; t=1672505195; x=1672591595; bh=vEylqdPcoZ0eu
+	JOiHbHp34nwz64q54ysKO9PHy+mOik=; b=dM6ESZzOqo3QpkRhPj0cexpFFM+QN
+	qFoHLzZo6/l1TtN2trAen82Y1JOQUfWLhvVQms4inKKS2PWH7+KckhL8YrWhiNkU
+	V3eSIky9nSyfFbBrQnGW8lrJPQm4VGGW3Tcez3KNuvFfPBE8eewZuH3o7FU6kSq0
+	+I8L9DGHEtLApZDbHZkOT+lME2kzTmQjdcwrz70Z2gXb7tA73mbsB0+gQ3iw/HbR
+	UItu3LEfHsYCoCzTRBNEJRfVMRR9AY7zRce97J2wkksxmpwshN5IahK/NC9antDY
+	R2vmeBzMXKqKoU/YiGQTivbT17QJ2GvicLQdZh63vAZOCeQwCrNzviiYg==
+X-ME-Sender: <xms:a2ewY9cmL_dKrM9irEQfRcZcxZsYZS4WM8iCUjSHoAIVCFX6qlP2_w>
+    <xme:a2ewY7PPIiScSxUaz9veZGEIGRxogu2Ctuvlmc-pvQ9hRV7ab9uc_yghpUZ3Sr2Mu
+    5nnGTRIBdh5O7MHlA>
+X-ME-Received: 
+ <xmr:a2ewY2iZ0VPLnbvRFdFYfx7COZk6i_k879ld-Zep9vJpsH9TCwJGQpgitZmOiicUrM_pVu9TbfkF_gyjuRz7VDqNcVF39FHRJk19DcFEDzaFiMiOM-NtPEAe-nzP-YORhfXlLA>
+X-ME-Proxy-Cause: 
+ gggruggvucftvghtrhhoucdtuddrgedvhedrieekgdelvdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefhvfevufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpefurghmuhgv
+    lhcujfholhhlrghnugcuoehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhgqeenucggtf
+    frrghtthgvrhhnpedukeetueduhedtleetvefguddvvdejhfefudelgfduveeggeehgfdu
+    feeitdevteenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
+    hmpehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhg
+X-ME-Proxy: <xmx:a2ewY28t1eAnWEhOQwggTbIIFtstW7qRSw4S6RgXsdRn7-DsZmTg4g>
+    <xmx:a2ewY5vWLaIfG5o9d6bAzvRajKdViiqOCvTCIQodqrgoWM8HNFyQdw>
+    <xmx:a2ewY1E-Hv5TlgTo46ufI9apB9MorSw4wL9j7eeRyaFSc9NaStRUsg>
+    <xmx:a2ewY0nj0fcA6jli-MEERMn9d4J2sqV5BIiW65e4esUsu69xyJ2erg>
+Feedback-ID: i0ad843c9:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
+ 31 Dec 2022 11:46:34 -0500 (EST)
+From: Samuel Holland <samuel@sholland.org>
+To: Chen-Yu Tsai <wens@csie.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>
+Cc: Samuel Holland <samuel@sholland.org>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Conor Dooley <conor@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Maxime Ripard <mripard@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-staging@lists.linux.dev,
+	linux-sunxi@lists.linux.dev
+Subject: [PATCH 3/4] media: cedrus: Make SRAM section claiming optional
+Date: Sat, 31 Dec 2022 10:46:26 -0600
+Message-Id: <20221231164628.19688-4-samuel@sholland.org>
+X-Mailer: git-send-email 2.37.4
+In-Reply-To: <20221231164628.19688-1-samuel@sholland.org>
+References: <20221231164628.19688-1-samuel@sholland.org>
+MIME-Version: 1.0
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20221231_084636_308668_8742A223 
+X-CRM114-Status: GOOD (  11.05  )
+X-BeenThere: linux-riscv@lists.infradead.org
+X-Mailman-Version: 2.1.34
+Precedence: list
+List-Id: <linux-riscv.lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-riscv/>
+List-Post: <mailto:linux-riscv@lists.infradead.org>
+List-Help: <mailto:linux-riscv-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-riscv" <linux-riscv-bounces@lists.infradead.org>
+Errors-To: 
+ linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org
+
+The video engine in the D1 family of SoCs does not have a switchable
+SRAM section. Allow the driver to probe even when the SRAM section
+reference is missing.
+
+Signed-off-by: Samuel Holland <samuel@sholland.org>
+Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
+index fa86a658fdc6..11e859617932 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
+@@ -257,7 +257,7 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
+ 	}
+ 
+ 	ret = sunxi_sram_claim(dev->dev);
+-	if (ret) {
++	if (ret && ret != -ENOENT) {
+ 		dev_err(dev->dev, "Failed to claim SRAM\n");
+ 
+ 		goto err_mem;
+
+From patchwork Sat Dec 31 16:46:27 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Samuel Holland <samuel@sholland.org>
+X-Patchwork-Id: 13086150
+X-Patchwork-Delegate: mail@conchuod.ie
+Return-Path: 
+ <linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.lore.kernel.org (Postfix) with ESMTPS id 3DDC0C4332F
+	for <linux-riscv@archiver.kernel.org>; Sat, 31 Dec 2022 16:50:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=lists.infradead.org; s=bombadil.20210309; h=Sender:
+	Content-Transfer-Encoding:Content-Type:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:References:In-Reply-To:
+	Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Owner; bh=YnqfrQ3a7z0QbTx7p4sbZEwBg51TuSHSQGlBI0nO5TE=; b=So86brLDXVusV/
+	69UydL24ecPSGmXjI19VVqq4LlQfO2jF6iCqHX3xx0oML7wwZN4BinUuOIqRYcQEKwQKi0Eo+r0UE
+	z6Yw/V2ySnrpjMFvqShdJdXuHMssRBO8YzRDpJVhIGBsP04kGG1iHDg0YxMAOR1ZhJi9qCdGy6g8M
+	frP2pHP9XyRxq+10iQXa8GDdor3DbRIDkqoFBnCaSdOsMRGoBWcWpGt5tgMCm/LDsTg9Xu82IVvzN
+	e3FrSjw+7xdJU64flmNoopqyUIPbnN3nebhgiABiWJ9mS0JFrA1QWfvhAuWomMM3PBCQJmI3u0qf1
+	OoC9i5+UlrFRj0ehYcSg==;
+Received: from localhost ([::1] helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtp (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf3s-007g0s-A2; Sat, 31 Dec 2022 16:50:20 +0000
+Received: from out2-smtp.messagingengine.com ([66.111.4.26])
+	by bombadil.infradead.org with esmtps (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pBf0H-007djL-Ik; Sat, 31 Dec 2022 16:46:39 +0000
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+	by mailout.nyi.internal (Postfix) with ESMTP id D038F5C009F;
+	Sat, 31 Dec 2022 11:46:36 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute3.internal (MEProxy); Sat, 31 Dec 2022 11:46:36 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sholland.org; h=
+	cc:cc:content-transfer-encoding:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:sender
+	:subject:subject:to:to; s=fm3; t=1672505196; x=1672591596; bh=7u
+	QYAURCHALofBgFqai+eJUuH83j/8j81wXB1dd11us=; b=Z1Lc/KcetaEibwX0dY
+	JySItRjpdvUAyueivr0diViUBCr7DukMgltIDO350pBO8e2zlGGPBi1ZM5K6g8RI
+	ijpH54flxMKeCD+p9jAfaJ0FAmyxb53KCENakMz5YEBliQNhlEMIkDhuoeu8S9Kx
+	0ZU71TiJ9ihY5p3RqTU5E1eGPmsbGRQIlPSmy5UfBDioxvFyWAcw+ymVNPuhdUg7
+	PlhhqSmJXojzy2B9WJQhvC4fp0yiCVFGchz+ncWlPl8EUYzI4b2wx83efps03v1q
+	/ebkfvz+wTjFkm6Th29cL1rBogtMpAm/l97JaaA9UCqyrd+y46LkuxUpOVdqEarR
+	grCg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:sender:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm2; t=1672505196; x=1672591596; bh=7uQYAURCHALof
+	BgFqai+eJUuH83j/8j81wXB1dd11us=; b=uEtyUlqWQIP6KQnLbF7xCXwWgQnnI
+	Q+68oZS1Q2BfaaSRj05sI6nC5Gb98mtUISzPKUuxFMVcN17GMeOmU8Qd1avNLwXE
+	REPaCDhAB8os+3Zt19Ni0I+jAO3e4xjy5AStkBwIPX/DmINi5N9eDEw5jXvcp9R9
+	lEofGkOsxzCviMJZVT7Tl5PXJMx0wiBedsC2ME82wRjhU6iTbs/AncZErANh/bj/
+	olZlQlAyZmcBe19ZbWsPh4FRGOjndpg0dlmHmFR29vttM6Tnfumyyi93OIuFdcsp
+	9/5Vs+lk2WeZrkPAv/GTX5DlC3Vh56lMiOBCblzOfkcm1jf+WrZq6ShuQ==
+X-ME-Sender: <xms:bGewY2YyJsoB9GYtcd0Y7RbeHn6f28O36fil5Bk07AXHPEc4tVYFPQ>
+    <xme:bGewY5Y1iZVeifPFRNJqGQbS80D47FmmWiyWe_osuVhTIcbTeXCMOlLIegRGwuQN5
+    SlrDz-VkV3i3kJ2gw>
+X-ME-Received: 
+ <xmr:bGewYw_tOGNGkqnPQfb69c_rE2IQtIqo0DZAH4GgJtnlcw5BupJRS1bI5t6IFkpGd1HRlFKtTt8L8aMgT-qMaeR53ovVSK0Rlor8EoRQ1mquSpfLdd3BZkjE3I6f4j5rqi_d7Q>
+X-ME-Proxy-Cause: 
+ gggruggvucftvghtrhhoucdtuddrgedvhedrieekgdelfecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefhvfevufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpefurghmuhgv
+    lhcujfholhhlrghnugcuoehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhgqeenucggtf
+    frrghtthgvrhhnpedukeetueduhedtleetvefguddvvdejhfefudelgfduveeggeehgfdu
+    feeitdevteenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
+    hmpehsrghmuhgvlhesshhhohhllhgrnhgurdhorhhg
+X-ME-Proxy: <xmx:bGewY4rV7zQaxG2__glQcVtFLQp82ebxc280fvp_8943ZTBp1AxmZw>
+    <xmx:bGewYxqsc8d2IjOpXGlF5GEy2pJwTFaUISDLQeg3uPNPOTj7y7QEQA>
+    <xmx:bGewY2Q_vo2xQr8FYEHn3nEa79tQoZzMt4Qrus7v3zUGF5dpgZ4loQ>
+    <xmx:bGewY2if-Uz-np-3MUQ1eFvqDpKhjalu6n3Z6JZ2ftPjoU-txNTSHA>
+Feedback-ID: i0ad843c9:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
+ 31 Dec 2022 11:46:35 -0500 (EST)
+From: Samuel Holland <samuel@sholland.org>
+To: Chen-Yu Tsai <wens@csie.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski+dt@linaro.org>
+Cc: Samuel Holland <samuel@sholland.org>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Conor Dooley <conor@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Maxime Ripard <mripard@kernel.org>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	devicetree@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	linux-staging@lists.linux.dev,
+	linux-sunxi@lists.linux.dev
+Subject: [PATCH 4/4] riscv: dts: allwinner: d1: Add video engine node
+Date: Sat, 31 Dec 2022 10:46:27 -0600
+Message-Id: <20221231164628.19688-5-samuel@sholland.org>
+X-Mailer: git-send-email 2.37.4
+In-Reply-To: <20221231164628.19688-1-samuel@sholland.org>
+References: <20221231164628.19688-1-samuel@sholland.org>
+MIME-Version: 1.0
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20221231_084637_900346_9F723EFD 
+X-CRM114-Status: UNSURE (   8.62  )
+X-CRM114-Notice: Please train this message.
+X-BeenThere: linux-riscv@lists.infradead.org
+X-Mailman-Version: 2.1.34
+Precedence: list
+List-Id: <linux-riscv.lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-riscv/>
+List-Post: <mailto:linux-riscv@lists.infradead.org>
+List-Help: <mailto:linux-riscv-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-riscv>,
+ <mailto:linux-riscv-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-riscv" <linux-riscv-bounces@lists.infradead.org>
+Errors-To: 
+ linux-riscv-bounces+linux-riscv=archiver.kernel.org@lists.infradead.org
+
+D1 contains a video engine which is supported by the Cedrus driver.
+
+Signed-off-by: Samuel Holland <samuel@sholland.org>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+---
+
+ arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi b/arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi
+index dff363a3c934..4bd374279155 100644
+--- a/arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi
++++ b/arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi
+@@ -34,6 +34,17 @@ soc {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 
++		ve: video-codec@1c0e000 {
++			compatible = "allwinner,sun20i-d1-video-engine";
++			reg = <0x1c0e000 0x2000>;
++			interrupts = <SOC_PERIPHERAL_IRQ(66) IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&ccu CLK_BUS_VE>,
++				 <&ccu CLK_VE>,
++				 <&ccu CLK_MBUS_VE>;
++			clock-names = "ahb", "mod", "ram";
++			resets = <&ccu RST_BUS_VE>;
++		};
++
+ 		pio: pinctrl@2000000 {
+ 			compatible = "allwinner,sun20i-d1-pinctrl";
+ 			reg = <0x2000000 0x800>;
