@@ -12,10 +12,6 @@
 	model = "Portamesh proto";
 	compatible = "tmr0fr,sunxi-d1s-t113-portamesh", "allwinner,sun8i-t113s";
 
-	aliases {
-		ethernet0 = &rtl8189ftv;
-	};
-
         /*
         chosen {
 		#address-cells = <1>;
@@ -75,11 +71,4 @@
         clock-frequency = <648000000>;
 };
 
-&mmc1 {
-	rtl8189ftv: wifi@1 {
-		reg = <1>;
-		interrupt-parent = <&pio>;
-		interrupts = <6 10 IRQ_TYPE_LEVEL_LOW>; /* PG10 = WL_WAKE_AP */
-		interrupt-names = "host-wake";
-	};
 };
