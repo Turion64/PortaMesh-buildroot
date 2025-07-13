@@ -223,6 +223,64 @@
 	usb1_vbus-supply = <&reg_vcc5v>;
 	status = "okay";
 };
+// I2C
+&i2c2 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c2_pins>;
+    status = "okay";
+    clock-frequency = <400000>; // apparently the gt911 onyl works reliably at 400khz. (and more ?)
+    // NOTE : vvv i don't think this should be here
+    #address-cells = <1>;
+    #size-cells = <0>;
+    // capacitive touchscreen
+    touchscreen@14 {
+        //pinctrl-names = "default";
+        //pinctrl-0 = <&gt911_irq_pin>, <&gt911_reset_pin>;
+        compatible = "goodix,gt911";
+        reg = <0x14>;
+        interrupt-parent = <&pio>;
+        interrupts = <1 4 IRQ_TYPE_EDGE_RISING>;    // PB 4
+        irq-gpios = <&pio 1 4 GPIO_ACTIVE_HIGH>;    // PB 4
+        reset-gpios = <&pio 1 5 GPIO_ACTIVE_HIGH>;  // PB 5 // ACTIVE HIGH ???
+    };
+    // small I2C OLED
+    oled: ssd1306_i2c@3c {
+        compatible = "solomon,ssd1306fb-i2c";
+        reg = <0x3c>;
+        solomon,height = <32>;
+        solomon,width = <128>;
+        solomon,com-seq;
+        solomon,com-invdir;
+        solomon,page-offset = <0>;
+        solomon,prechargep1 = <2>;
+        solomon,prechargep2 = <13>;
+    };
+    // GPIO extender
+    gpioext: gpio@20 {
+        compatible = "nxp,pca9574";
+        reg = <0x20>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+        interrupt-parent = <&pio>;
+        interrupts = <2 7 IRQ_TYPE_EDGE_FALLING>;   // PC 7
+        reset-gpios = <&pio 2 6 GPIO_ACTIVE_LOW>;   // PC 6
+        gpio-line-names =   "gps-reset_n", "gps-pwron", "chgled-green", "lcd-en",
+                            "user-btn1_n", "user-btn2_n", "user-btn3_n", "user-btn4_n";
+    };
+    // IMU
+    // TODO : add driver https://github.com/marcinbis/icm20948-mod
+    imu: icm20948@68 {
+        compatible = "invensense,icm20948";
+        reg = <0x68>;
+        interrupt-parent = <&pio>;
+        interrupts = <6 8 IRQ_TYPE_EDGE_FALLING>;     // PG 8
+        vdd-supply = <&reg_aldo1>;
+        vddio-supply = <&reg_aldo1>;
+    };
+
+};
 
 /* video */
 
