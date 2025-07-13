@@ -1,0 +1,15 @@
+/buildroot/output
+/buildroot/dl
+/buildroot/.auto.deps
+/buildroot/.config.cmd
+/buildroot/.config.old
+/buildroot/..config.tmp
+/buildroot/.config
+*.depend
+*.o
+/buildroot/*.patch
+/buildroot/*.diff
+*.orig
+*.rej
+*~
+*.pyc
