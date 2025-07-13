@@ -60,10 +60,13 @@
         ///* temporary virtual 1.8v regulator
 	reg_1v8: regulator-1v8 {
 		compatible = "regulator-fixed";
-	wifi_pwrseq: wifi-pwrseq {
-		compatible = "mmc-pwrseq-simple";
-		reset-gpios = <&pio 6 12 GPIO_ACTIVE_LOW>; /* PG12 */
+		regulator-name = "vcc-3v3";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		vin-supply = <&reg_vcc5v>;
 	};
+*/
+/*
         // Regulateurs
 reg_1v8 {
     device-parent = <&reg_aldo1>;
@@ -233,8 +236,8 @@ reg_vcc_core {
 &mmc0 {
 	pinctrl-0 = <&mmc0_pins>;
 	pinctrl-names = "default";
-	vmmc-supply = <&reg_3v3>;
-	cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&reg_dcdc1>;
+	cd-gpios = <&pio 2 3 GPIO_ACTIVE_LOW>; // PC3
 	disable-wp;
 	bus-width = <4>;
 	status = "okay";

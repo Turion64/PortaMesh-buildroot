@@ -60,13 +60,13 @@
 };
 
 &cpu0 {
-	cpu-supply = <&reg_vcc_core>;
+	cpu-supply = <&reg_dcdc2>;
         operating-points-v2 = <&opp_table_cpu>;
         clock-frequency = <648000000>;
 };
 
 &cpu1 {
-	cpu-supply = <&reg_vcc_core>;
+	cpu-supply = <&reg_dcdc2>;
         operating-points-v2 = <&opp_table_cpu>;
         clock-frequency = <648000000>;
 };
