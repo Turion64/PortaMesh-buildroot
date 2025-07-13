@@ -290,6 +290,11 @@ reg_vcc_core {
             pins = "PB2", "PB3";
             function = "i2c0";
         };
+        // Pour LoRa
+        spi0_pins: spi0-pins {
+                pins = "PC2", "PC4", "PC5";
+                function = "spi0";
+        };
         };
         /*
         gt911_irq_pin: gt911-irq-pin {
@@ -501,6 +506,24 @@ reg_vcc_core {
 
 
 // ----- END OF PMIC ZONE
+
+
+&spi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0_pins>;
+	status = "okay";
+
+	sx1262@0 {
+                compatible = "semtech,sx1301";
+                // retarded kernel devs don't think having an uncommitted spi port on a board is usefull, so "linux,spidev" doesn't work anymore.
+                // "semtech,sx1301" is equiavelent to "linux,spidev" and appears as /dev/spidev0.0
+                // https://elixir.bootlin.com/linux/v6.13.4/source/drivers/spi/spidev.c#L741
+		//compatible = "linux,spidev";
+		reg = <0>; // CS #0
+		spi-max-frequency = <10000000>;
+	};
+};
+
 
 /* video */
 
