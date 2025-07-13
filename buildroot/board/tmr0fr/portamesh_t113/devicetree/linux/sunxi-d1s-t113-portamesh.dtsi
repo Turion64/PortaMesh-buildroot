@@ -70,9 +70,9 @@
 		reset-gpios = <&pio 6 12 GPIO_ACTIVE_LOW>; /* PG12 */
 	};
 
-        backlight:backlight {
+        backlight_lcd:backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm 7 1000000 0>;    // 1.000.000 ns -> 1khz
+		pwms = <&pwm 7 1000000 0>;    // 1.000.000 ns -> 1khz // TODO : augmenter fréquence et voir si changement conso.
 		//           ^ ^
 		//           | |_period in ns
 		//           |_pwm channel
@@ -120,7 +120,7 @@
                 */
 	};
 
-
+        // revoir ça
         panel_power:panel_power {
                 compatible = "regulator-fixed";
                 regulator-name = "panel-power";
@@ -255,11 +255,11 @@
 	vcc-pf-supply = <&reg_3v3>;
 	vcc-pg-supply = <&reg_3v3>;
         // pwm
+        // pwm rétroéclairage LCD
         pwm7_pin: pwm7-pin {
             pins = "PD22";
             function = "pwm7";
         };
-
         // pwm rétroéclairage boutons/keypad
         pwm5_pin: pwm5-pin {
             pins = "PF6";
@@ -385,7 +385,7 @@
 //        Le patch se trouve dans le dossier "board/tmr0fr/portamesh_t113/patch/linux/".
 &pwm {
       pinctrl-names = "default";
-      pinctrl-0 = <&pwm7_pin>;//, <&pwm1_pin>;
+      pinctrl-0 = <&pwm7_pin>,   // PD22
                   <&pwm5_pin>;   // PF6
       status = "okay";
 };
@@ -393,7 +393,8 @@
 &panel {
         compatible = "logictechno,lttd800480070-l6wh-rt", "simple-panel";
         power-supply = <&panel_power>;
-        backlight = <&backlight>;
+        backlight = <&backlight_lcd>;
+        enable-gpios = <&gpioext 3 GPIO_ACTIVE_HIGH>; // TODO : remplacer par son nom
 };
 
 // resistive touch screen
