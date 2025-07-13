@@ -29,7 +29,8 @@
 	};
         */
 
-	/* board wide 5V supply directly from the USB-C socket */
+/*
+	///* board wide 5V supply directly from the USB-C socket
 	reg_vcc5v: regulator-5v {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc-5v";
@@ -38,7 +39,7 @@
 		regulator-always-on;
 	};
 
-	/* SY8008 DC/DC regulator on the board */
+	///* SY8008 DC/DC regulator on the board
 	reg_3v3: regulator-3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc-3v3";
@@ -47,7 +48,7 @@
 		vin-supply = <&reg_vcc5v>;
 	};
 
-	/* SY8008 DC/DC regulator on the board, also supplying VDD-SYS */
+	///* SY8008 DC/DC regulator on the board, also supplying VDD-SYS
 	reg_vcc_core: regulator-core {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc-core";
@@ -56,19 +57,24 @@
 		vin-supply = <&reg_vcc5v>;
 	};
 
-	/* XC6206 LDO on the board */
-	reg_avdd2v8: regulator-avdd {
+        ///* temporary virtual 1.8v regulator
+	reg_1v8: regulator-1v8 {
 		compatible = "regulator-fixed";
-		regulator-name = "avdd2v8";
-		regulator-min-microvolt = <2800000>;
-		regulator-max-microvolt = <2800000>;
-		vin-supply = <&reg_3v3>;
-	};
-
 	wifi_pwrseq: wifi-pwrseq {
 		compatible = "mmc-pwrseq-simple";
 		reset-gpios = <&pio 6 12 GPIO_ACTIVE_LOW>; /* PG12 */
 	};
+        // Regulateurs
+reg_1v8 {
+    device-parent = <&reg_aldo1>;
+};
+reg_3v3 {
+    device-parent = <&reg_dcdc1>;
+};
+reg_vcc_core {
+    device-parent = <&reg_dcdc2>;
+};
+*/
 
         backlight_lcd:backlight {
 		compatible = "pwm-backlight";
@@ -249,12 +255,12 @@
 };
 
 &pio {
-	vcc-pb-supply = <&reg_3v3>;
-	vcc-pd-supply = <&reg_3v3>;
-	vcc-pe-supply = <&reg_avdd2v8>;
-	vcc-pf-supply = <&reg_3v3>;
-	vcc-pg-supply = <&reg_3v3>;
-        // pwm
+        // TODO: changer alims
+	/*vcc-pb-supply = <&reg_dcdc1>;
+	vcc-pd-supply = <&reg_dcdc1>;
+	vcc-pe-supply = <&reg_dcdc1>;
+	vcc-pf-supply = <&reg_dcdc1>;
+	vcc-pg-supply = <&reg_dcdc1>;*/
         // pwm rétroéclairage LCD
         pwm7_pin: pwm7-pin {
             pins = "PD22";
@@ -271,9 +277,11 @@
             function = "i2c2";
         };
 
-        i2c1_pins: i2c1-pins {
-            pins = "PB4", "PB5";
-            function = "i2c1";
+        // I2C1 pour PMIC AXP813
+        i2c0_pins: i2c0-pins {
+            pins = "PB2", "PB3";
+            function = "i2c0";
+        };
         };
         /*
         gt911_irq_pin: gt911-irq-pin {
@@ -362,6 +370,129 @@
     };
 
 };
+
+// PMIC AXP813
+&i2c0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c0_pins>;
+    status = "okay";
+    clock-frequency = <400000>; // oled go fast
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    axp81x: pmic@34 {  // NOTE : nom axp81x obligé parce que référencén dans axp81x.dtsi, que l'on inclus après
+        compatible = "x-powers,axp813";
+        reg = <0x34>;
+        // Les "gros" CPUs/AP allwinner inrègrent un CPU de "gestion" : AR100. Celui-ci gère la mise en veille du CPU, etc...
+        // Le pin INT du PMIC/RTC semble normalement connecté au pin "NMI" du CPU, qui est également partagé avec l'AR100
+        // Ainsi, les interruptions sont souvent confirgurées telles que :
+        //      interrupt-parent = <&r_intc>;
+        //      interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_LOW>;   // ou  <0 IRQ_TYPE_LEVEL_LOW>;
+        // r_intc étant le coontrôleur d'interrupt partagé entre ARM et AR100 ? --> https://linux-sunxi.org/INTC
+        // Le t113-S3 n'intègre pas de CPU de gestion (AR100), l'interrupt du PMIC est donc connectée à un GPIO "normal" : PG11
+        // Cela veut également dire que les interruptions du PMIC sont masquables puisqu'on a pas vraiment de NMI.
+        // TODO : voir si le DSP du t113-s3 ne pourrait pas prendre le rôle du AR100. ?
+        interrupt-parent = <&pio>;
+        interrupts = <6 11 IRQ_TYPE_LEVEL_LOW>; // PG 11
+        /*  On utilise pas ces régulateurs et on les alimente avec PMIC_PS / IPSOUT. Mais je regarde ça pour pas oublier que ça existe.
+        eldoin-supply = <&reg_dcdc1>;
+        fldoin-supply = <&reg_dcdc5>;
+        swin-supply = <&reg_dcdc1>;
+        */
+        //x-powers,drive-vbus-en;   // on a pas d'USB OTG pour l'instant sur la rev.0 du hw.
+    };
+};
+
+
+// ----- PMIC ZONE
+
+#include "allwinner/axp81x.dtsi"
+
+// --- POWER SOURCES
+
+&ac_power_supply {
+    status = "okay";
+};
+
+&battery_power_supply {
+    status = "okay";
+};
+
+// --- LDOs
+
+&reg_aldo1 {
+    /* Alimente les périphériques 1.8v, tels que l'IMU
+     */
+	regulator-always-on;
+	regulator-min-microvolt = <1800000>;
+	regulator-max-microvolt = <1800000>;
+	regulator-name = "reg_1v8";
+};
+
+&reg_aldo2 {
+    /* Alimente le contrôleur de DRAM interne au CPU. 1.8v fixe
+     */
+	regulator-always-on;
+	regulator-min-microvolt = <1800000>;
+	regulator-max-microvolt = <1800000>;
+	regulator-name = "dram-pll";
+};
+
+// LDO RTC Always ON
+
+&reg_rtc_ldo {
+	regulator-name = "vcc-rtc";
+};
+
+// --- DCDCs
+
+&reg_dcdc1 {
+    /* Alimente tout ce qui est en 3.3v.
+     * Liste non exhaustive :
+     * - WIFI/BT
+     * - Radio LORA SX1262
+     * - I/O CPU
+     * - SD
+     * - GPIOEXT
+     * - LEDs
+     * - PULLUPs Boutons
+     * - LCD
+     * - Flyback LCD (selon choix jumper R63/R65. Sinon alimenté par IPSOUT)
+     * - GPS (indirectement car son 3.3v est ensuite switché localement par un FET)
+     * - PULLUP interrupt PMIC/RTC
+     *
+     * Utilisé comme régulateur 3.3v fixe.
+     */
+    regulator-always-on;
+    regulator-min-microvolt = <3300000>;
+    regulator-max-microvolt = <3300000>;
+    regulator-name = "reg_3v3";
+};
+
+&reg_dcdc2 {
+    /* Alimente le CPU : CPU0, CPU1 ; SYS0, SYS1, SYS2
+     * Range tensions non décrit dans le datasheet du T113-s3. Seulement 0.9v
+     * Contrôlé par DVFS. On a choisi 0.7v à 1v de manière arbitraire.
+     */
+	regulator-always-on;
+	regulator-min-microvolt = <700000>;
+	regulator-max-microvolt = <1000000>;
+	regulator-name = "reg_vcc_core";
+};
+
+&reg_dcdc5 {
+    /* Alimente la DRAM (interne au CPU)
+     * 1.24v fixe. Devrait être 1.25, mais PMIC a pas l'air d'accepter.
+     * On peut surement déscendre un peu, si la freq mémoire est basse. Voir même faire du DVFS
+     */
+	regulator-always-on;
+	regulator-min-microvolt = <1240000>;
+	regulator-max-microvolt = <1240000>;
+	regulator-name = "vcc-dram";
+};
+
+
+// ----- END OF PMIC ZONE
 
 /* video */
 
