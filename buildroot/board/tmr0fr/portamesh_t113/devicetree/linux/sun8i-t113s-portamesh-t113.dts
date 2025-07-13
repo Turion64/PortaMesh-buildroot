@@ -71,4 +71,9 @@
         clock-frequency = <648000000>;
 };
 
+
+// Watchdog indispensable au reboot du système depuis Linux
+// Noeud originalement omis dans le DT pour Mangopi. Empèche le reboot du système.
+&wdt {
+	status = "okay";
 };
