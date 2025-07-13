@@ -240,6 +240,7 @@ reg_vcc_core {
 	status = "okay";
 };
 
+// SD
 &mmc0 {
 	pinctrl-0 = <&mmc0_pins>;
 	pinctrl-names = "default";
@@ -247,16 +248,13 @@ reg_vcc_core {
 	cd-gpios = <&pio 2 3 GPIO_ACTIVE_LOW>; // PC3
 	disable-wp;
 	bus-width = <4>;
-	status = "okay";
-};
+        max-frequency = <150000000>;  // NOTE : supposé être à 1.8v alors que notre éléctronique est bloquée à 3.3v
+        //no-1-8-v;
+        cap-sd-highspeed;
+        sd-uhs-sdr50;
+        sd-uhs-sdr104;      // NOTE : ça il sait pas le faire à 3.3v, mais on verra bien si ça marche
+        sd-uhs-ddr50;
 
-&mmc1 {
-	pinctrl-0 = <&mmc1_pins>;
-	pinctrl-names = "default";
-	vmmc-supply = <&reg_3v3>;
-	non-removable;
-	bus-width = <4>;
-	mmc-pwrseq = <&wifi_pwrseq>;
 	status = "okay";
 };
 
