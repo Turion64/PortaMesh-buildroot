@@ -17,18 +17,6 @@
 		stdout-path = "serial3:115200n8";
 	};
 
-	/*
-        leds {
-		compatible = "gpio-leds";
-
-		led-0 {
-			color = <LED_COLOR_ID_BLUE>;
-			function = LED_FUNCTION_STATUS;
-			gpios = <&pio 3 22 GPIO_ACTIVE_LOW>; // PD22
-		};
-	};
-        */
-
 /*
 	///* board wide 5V supply directly from the USB-C socket
 	reg_vcc5v: regulator-5v {
@@ -318,6 +306,7 @@ reg_vcc_core {
         */
 };
 
+// console
 &uart3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart3_pb_pins>;
@@ -330,10 +319,14 @@ reg_vcc_core {
 	status = "okay";
 };
 
+/*
+ * USB1 non connexté sur PCB rev0
 &usbphy {
 	usb1_vbus-supply = <&reg_vcc5v>;
 	status = "okay";
 };
+*/
+
 // I2C
 &i2c2 {
     pinctrl-names = "default";
@@ -577,8 +570,6 @@ reg_vcc_core {
         status = "okay";
 };
 
-// I2C
-&i2c2 {
 // GPS
 // GNSS géré par noyau Linux. Fait apparaitre un character device /dev/gnss0
 // qui sort les message NMEA
@@ -587,23 +578,8 @@ reg_vcc_core {
 //         RESET et POWERON sur GPIO extender
 &uart1 {
     pinctrl-names = "default";
-    pinctrl-0 = <&i2c2_pins>;
     pinctrl-0 = <&uart1_pg6_pins>;
     status = "okay";
-    clock-frequency = <400000>; // apparently the gt911 onyl works reliably at 400khz. (and more ?)
-    // NOTE : vvv i don't think this should be here
-    #address-cells = <1>;
-    #size-cells = <0>;
-    // capacitive touchscreen
-    touchscreen@5d {
-        //pinctrl-names = "default";
-        //pinctrl-0 = <&gt911_irq_pin>, <&gt911_reset_pin>;
-        compatible = "goodix,gt911";
-        reg = <0x5d>;
-        interrupt-parent = <&pio>;
-        interrupts = <1 3 IRQ_TYPE_EDGE_RISING>;
-        irq-gpios = <&pio 1 3 GPIO_ACTIVE_HIGH>;
-        reset-gpios = <&pio 1 2 GPIO_ACTIVE_HIGH>;
     gnss {
         compatible = "globaltop,pa6h";  // const for mediatek GNSS
 
