@@ -295,7 +295,16 @@ reg_vcc_core {
                 pins = "PC2", "PC4", "PC5";
                 function = "spi0";
         };
+        // pour module Bluetooth
+        uart2_pe2_pins: uart2-pe2-pins {
+            pins = "PE2", "PE3";
+            function = "uart2";
         };
+        uart2_pe0_rts_cts_pins: uart2-pe0-rts-cts-pins {
+            pins = "PE0", "PE1";
+            function = "uart2";
+        };
+
         /*
         gt911_irq_pin: gt911-irq-pin {
             pins = "PB3";
