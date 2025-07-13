@@ -39,36 +39,53 @@
 
                 opp-288000000 {
 			opp-hz = /bits/ 64 <288000000>;
-			opp-microvolt = <880000 880000 1100000>;
+			opp-microvolt = <880000 880000 880000>;
 		};
 
 		opp-408000000 {
 			opp-hz = /bits/ 64 <408000000>;
-			opp-microvolt = <880000 880000 1100000>;
+			opp-microvolt = <880000 880000 880000>;
 		};
 
                 opp-648000000 {
 			opp-hz = /bits/ 64 <648000000>;
-			opp-microvolt = <880000 880000 1100000>;
+			opp-microvolt = <880000 880000 880000>;
 		};
 
-		opp-1080000000 {
+		opp-1008000000 {
 			opp-hz = /bits/ 64 <1008000000>;
+			opp-microvolt = <880000 880000 880000>;
+		};
+
+                // OVERCLOCK
+
+                // 1.2Ghz expérimental
+                // pas stable au long terme
+		opp-1200000000 {
+			opp-hz = /bits/ 64 <1200000000>;
+			opp-microvolt = <900000 900000 900000>;
+		};
+/*
+		// 1.4Ghz expérimental
+		// pas stable au bout de quelques minutes
+		opp-1392000000 {
+			opp-hz = /bits/ 64 <1392000000>;
 			opp-microvolt = <880000 880000 1100000>;
 		};
+*/
 	};
 };
 
 &cpu0 {
 	cpu-supply = <&reg_dcdc2>;
         operating-points-v2 = <&opp_table_cpu>;
-        clock-frequency = <648000000>;
+        clock-frequency = <288000000>;  // changé pour freq minimale, car c'est ce que schedutil à l'air d'utiliser comme freq de repos.
 };
 
 &cpu1 {
 	cpu-supply = <&reg_dcdc2>;
         operating-points-v2 = <&opp_table_cpu>;
-        clock-frequency = <648000000>;
+        clock-frequency = <288000000>;
 };
 
 
