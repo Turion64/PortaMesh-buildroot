@@ -144,47 +144,13 @@ reg_vcc_core {
         };
 
         // Boutons
-        // TODO : marche pas car interrupt foireux ?
-        gpio_keys: gpio-keys {
-            //compatible = "gpio-keys"; // marche pas pour l'instant car interrupt foireux sur GPIO expander
+        // TODO : marche pas en mode interrupt. Aucun event. Electriquement tout va bien : pullups activées et descent à 0v quand boutons appuyés.
+        face_keys: gpio-face-keys {
+            //compatible = "gpio-keys"; // charge ok. Marche pas
             compatible = "gpio-keys-polled";
-            poll-interval = <100>;  // en ms -> 10hz
-            autorepeat;
-            status = "okay";
-            // Facade
-            // Pour l'instant, les touches n'ont pas de rôle défini, donc on leur donne un keycode réservé pour les macros...
-            // https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h#L694
-            face-key1 {
-                    label = "Face Key 1";
-                    linux,code = <0x290>;
-                    gpios = <&gpioext 4 GPIO_ACTIVE_LOW GPIO_PULL_UP>;
-                    //interrupt-parent = <&gpioext>;
-                    //interrupts = <4 IRQ_TYPE_LEVEL_LOW>;
-            };
-
-            face-key2 {
-                    label = "Face Key 2";
-                    linux,code = <0x291>;
-                    gpios = <&gpioext 5 GPIO_ACTIVE_LOW GPIO_PULL_UP>;
-                    //interrupt-parent = <&gpioext>;
-                    //interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
-            };
-
-            face-key3 {
-                    label = "Face Key 3";
-                    linux,code = <0x292>;
-                    gpios = <&gpioext 6 GPIO_ACTIVE_LOW GPIO_PULL_UP>;
-                    //interrupt-parent = <&gpioext>;
-                    //interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
-            };
-
-            face-key4 {
-                    label = "Face Key 4";
-                    linux,code = <0x293>;
-                    gpios = <&gpioext 7 GPIO_ACTIVE_LOW GPIO_PULL_UP>;
-                    //interrupt-parent = <&gpioext>;
-                    //interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-            };
+            poll-interval = <10>;  // en ms -> 100hz
+            //autorepeat;
+            status = "disabled";
         };
 
         leds-pwm {
@@ -648,3 +614,44 @@ reg_vcc_core {
     };
 };
 
+&face_keys {
+    // Boutons en facade
+    // Pour l'instant, les touches n'ont pas de rôle défini, donc on leur donne un keycode réservé pour les macros...
+    // https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h#L694
+    status = "okay";
+    face-key1 {
+            label = "Face Key 1";
+            //linux,code = <0x290>;
+            linux,code = <102>; // home
+            gpios = <&gpioext 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+            //interrupt-parent = <&gpioext>;
+            //interrupts = <4 IRQ_TYPE_LEVEL_LOW>;
+    };
+
+    face-key2 {
+            label = "Face Key 2";
+            //linux,code = <0x291>;
+            linux,code = <158>; // back
+            gpios = <&gpioext 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+            //interrupt-parent = <&gpioext>;
+            //interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+    };
+
+    face-key3 {
+            label = "Face Key 3";
+            //linux,code = <0x292>;
+            linux,code = <0x160>; // ok
+            gpios = <&gpioext 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+            //interrupt-parent = <&gpioext>;
+            //interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
+    };
+
+    face-key4 {
+            label = "Face Key 4";
+            //linux,code = <0x293>;
+            linux,code = <15>; // tab
+            gpios = <&gpioext 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+            //interrupt-parent = <&gpioext>;
+            //interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+        };
+};
