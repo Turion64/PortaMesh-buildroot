@@ -1,0 +1,12 @@
+[global]
+OfflineMode=false
+
+[Bluetooth]
+Enable=false
+Tethering=false
+Tethering.Freq=2412
+
+[WiFi]
+Enable=true
+Tethering=false
+Tethering.Freq=2412
