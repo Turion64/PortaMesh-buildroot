@@ -1,0 +1,36 @@
+--- a/drivers/ram/sunxi/dram_sun20i_d1.c	2025-04-07 23:57:55.000000000 +0200
++++ a/drivers/ram/sunxi/dram_sun20i_d1.c	2025-07-20 20:13:21.950449385 +0200
+@@ -651,7 +651,7 @@
+ 				  const dram_config_t *config)
+ {
+ 	const uint8_t *cfg;
+-	uint32_t fuse, val;
++	uint32_t fuse, val, chipid;
+ 
+ 	/*
+ 	 * It is unclear whether the LPDDRx types don't need any remapping,
+@@ -662,7 +662,9 @@
+ 		return;
+ 
+ 	fuse = (readl(SUNXI_SID_BASE + 0x28) & 0xf00) >> 8;
++	chipid = (readl(SUNXI_SID_BASE) & 0xffff);
+ 	debug("DDR efuse: 0x%x\n", fuse);
++	debug("chip id efuse: 0x%x\r\n", chipid);
+ 
+ 	if (para->dram_type == SUNXI_DRAM_TYPE_DDR2) {
+ 		if (fuse == 15)
+@@ -675,7 +677,13 @@
+ 			switch (fuse) {
+ 			case 8: cfg = ac_remapping_tables[2]; break;
+ 			case 9: cfg = ac_remapping_tables[3]; break;
+-			case 10: cfg = ac_remapping_tables[5]; break;
++			case 10:
++				if(chipid == 0x7200){   // 0x6800 on some T113-s4 ?
++					cfg = ac_remapping_tables[0]; // T113-s4 -> no remap
++				} else {
++					cfg = ac_remapping_tables[5]; // T113-s3
++				}
++				break;
+ 			case 11: cfg = ac_remapping_tables[4]; break;
+ 			default:
+ 			case 12: cfg = ac_remapping_tables[1]; break;
