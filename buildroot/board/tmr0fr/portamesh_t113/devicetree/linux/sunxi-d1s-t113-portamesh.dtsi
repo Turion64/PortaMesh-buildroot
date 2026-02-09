@@ -487,6 +487,8 @@ reg_vcc_core {
 &reg_dcdc2 {
     /* Alimente le CPU : CPU0, CPU1 ; SYS0, SYS1, SYS2
      * Range tensions non décrit dans le datasheet du T113-s3. Seulement 0.9v
+     * En fait si, décrit dans datasheet v1.9 : 0.85v à 0.99v. Mais d'expérience ça tourne pas à 0.85v
+     * ça vaudrait le coup de reessayer depuis que la clock-latency à été ajoutée, car ça à l'air d'aider énormément avec la stabilité.
      * Contrôlé par DVFS. On a choisi 0.7v à 1v de manière arbitraire.
      */
 	regulator-always-on;
@@ -499,6 +501,7 @@ reg_vcc_core {
     /* Alimente la DRAM (interne au CPU)
      * 1.24v fixe. Devrait être 1.25, mais PMIC a pas l'air d'accepter.
      * On peut surement déscendre un peu, si la freq mémoire est basse. Voir même faire du DVFS
+     * Le datasheet v1.9 mentionne 1.5v mais ça doit être un erreur. En tout cas ça à l'air de bien marcher à 1.24v
      */
 	regulator-always-on;
 	regulator-min-microvolt = <1240000>;
