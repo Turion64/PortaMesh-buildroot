@@ -184,6 +184,31 @@ reg_vcc_core {
 
             // TODO : led charge pmic
         };
+
+        // Battery
+        // Doit être ici, car définition d'un nouveau noeud.
+        // J'aimerais idéalement qu'elle soit au niveau du PMIC
+        // TODO : revoir valeurs : courant charge. Température charge. overvolt thr. precharge. recharge thr...
+        // https://www.kernel.org/doc/Documentation/devicetree/bindings/power/supply/battery.yaml
+        battery: battery {
+            compatible = "simple-battery";
+            device-chemistry = "lithium-ion";           // Il faudrait préciser, mais franchement je sais pas ce que les chinois ont mis dans la batterie qu'on a.
+            voltage-min-design-microvolt = <3000000>;   // les régulateurs du AXP81x ne sont que des buck,
+                                                        // donc si on descend en dessous de 3.3v à la batterie, le rail 3.3v descend aussi. Et on veut limiter ça.
+                                                        // J'ai testé et en charge, à <3.1v ça déconne (rétroéclairage qui scintille, etc...). Et à 3.047000V ça s'est éteint brutalement
+                                                        // à 380mA, il s'est passé moins de 5 minutes entre 3.1v et 3v, donc autant s'éteindre à 3.1v et que ça ne crash pas brutalement à 3v.
+                                                        // NOTE : ce n'est pas le BMS de la batterie qui s'est éteint, c'est le PMIC qui a choisi. Est-ce qu'il s'est éteint parce qu'il
+                                                        // n'arrivait plus à tenir les tensions de sortie, où parce que j'ai mis ce paramètre à 3v et que la tension à atteint 3v ?
+                                                        // Après mesure (avec multimètre) à vide, la batterie est à 3.2v, mais à 3v en décharge à 380mA (mesurée par le PMIC)
+                                                        // Donc la résistance interne de cette batterie chinoise merdique est ENORME. ça où le layout de la PCB...
+                                                        // Du coup je laisse à 3v pour l'instant.
+            voltage-max-design-microvolt = <4200000>;
+            energy-full-design-microwatt-hours = <7400000>; // ( 3.7v * 2 Ah ) * 10^6   // TODO : changer à 4 Ah quand on aura les bonnes batteries
+            constant-charge-current-max-microamp = <1200000>;   // courant de charge max de 1.2A. Choisi au doigt mouillé.
+                                                                // Aussi parce que courant de base choisi par AXP813 avant qu'on ajoute ça au device tree et ma batterie n'as pas explosée.
+                                                                // changer à 2.4 quand on aura les 2 batteries.
+        };
+
 };
 
 &dcxo {
@@ -395,7 +420,10 @@ reg_vcc_core {
     status = "okay";
 };
 
+// https://www.kernel.org/doc/Documentation/devicetree/bindings/power/supply/x-powers%2Caxp20x-battery-power-supply.yaml
 &battery_power_supply {
+    x-powers,no-thermistor = "false"; // on a une thermistance (de 10k)
+    monitored-battery = <&battery>;
     status = "okay";
 };
 
