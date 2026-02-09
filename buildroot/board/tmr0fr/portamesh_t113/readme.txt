@@ -1,36 +1,43 @@
-MangoPi MQ1RDW2
+PortaMesh 1 (Allwinner T113-based)
 ===============
 
-MangoPi MQ1RDW2 is a tiny ARM Cortex-A7 based single board computer.
-It's built around Allwinner T113-S3 dual core 1GHz CPU with integrated
-128MB DDR3-1600 RAM.
-Board features:
-- USB-OTG Type-C socket
-- USB-HOST Type-C socket
-- 2x 18 pin GPIO headers
-- TF card slot
-- RTL8723DS WiFi module with ext. antenna connector
-- 40 pin RGB FPC connector
-- 6 pin CTP FPC connector
-- 24 pin DVP FPC connector
-- onboard mic
-- onboard audio amplifier
-- FEL,reset button
+PortaMesh is a portable wireless communication "tablet".
+It's main features includes :
+- LoRa wireless (Meshtastic compatible)
+- WiFi N - 2.4Ghz single band   (RTL8723DS)
+- Bluetooth 4.2 + BLE           (RTL8723DS)
+- GPS/GNSS
+- 5" 480*800 IPS LCD - 10 points capacitive touchscreen
+- Side mounted 0.96" OLED display for notifications
+- 9 axis IMU : Accelerometer + Gyroscope + Compass
+- Allwinner T113-s3/-s4 CPU : dual-core 1.2GHz ARM Cortex-A7 CPU
+                            (+ 2 heterogeneous cores : HiFi4 DSP + RISCV)
+- 128MB(-s3) or 256MB(-s4) DDR3 RAM
+- SDXC card slot - used for system and user data
+- USB-C socket (device-mode only)
+- Quasi-mainline U-Boot and Linux kernel
+
+[More info at : http://wiki.tmr0.fr/index.php/PortaMesh !]
 
 How to build
 ============
 
-$ make mangopi_mq1rdw2_defconfig
+$ make tmr0fr_porta_mesh_t113_defconfig
 $ make
 
 Wifi
 ==========
 
-Edit board/mangopi/mq1rdw2/overlay/etc/wpa_supplicant.conf or
-/etc/wpa_supplicant.conf once connected to the board:
+Edit /board/tmr0fr/portamesh_t113/rootfs_overlay/etc/wpa_supplicant.conf
+(or /etc/wpa_supplicant.conf once booted) :
 
 * Replace YOURSSID with your AP ssid
 * Replace YOURPASSWD with your AP password
+* (optionally) Replace "WPA-PSK" as needed
+
+Don't forget to re-build the SD-card image after changing Wifi credentials :
+
+$ make
 
 How to write the SD card
 ========================
@@ -42,5 +49,6 @@ Copy the bootable "sdcard.img" onto an SD card with "dd":
 
   $ sudo dd if=output/images/sdcard.img of=/dev/sdX
 
-Connect a TTL UART to the UART3 on P8 header (unpopulated), insert the microSD card and
-plug in a USB-C cable to the OTG or HOST connector to boot the system.
+Insert the microSD card and plug in a USB-C cable to boot the system.
+Wait a few seconds for the system to boot and display the splash screen.
+If nothing happens, please consult : http://wiki.tmr0.fr/index.php/PortaMesh (french)
